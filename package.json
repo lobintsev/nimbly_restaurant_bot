@@ -5,7 +5,10 @@
   "main": "bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon bot.js"
+    "start": "node bot.js",
+    "start-dev": "nodemon bot.js",
+    "stop": "-pkill node"
+
   },
   "author": "",
   "license": "ISC",
