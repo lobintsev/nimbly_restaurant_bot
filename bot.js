@@ -130,11 +130,11 @@ function register(msg) {
     state: "PHONE_REGISTRATION",
     registerInitiated: true,
   };
-  bot.sendMessage(chatId, 'Нажмите "Поделиться номером":', {
+  bot.sendMessage(chatId, 'Для регистрации в прогроамме лояльности нажмите кнопку "Разрешить доступ к контактам" ниже. Мы не передаем Ваши данные третьим лицам и будем использовать их только в рамках нашей сети:', {
     reply_markup: {
       one_time_keyboard: false,
       resize_keyboard: true,
-      keyboard: [[{ text: "Поделиться номером", request_contact: true }]],
+      keyboard: [[{ text: "Разрешить доступ к контактам", request_contact: true }]],
     },
   });
 }
