@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node bot.js",
     "start-dev": "nodemon bot.js",
-    "stop": "-pkill node"
+    "stop": "pkill node"
 
   },
   "author": "",
