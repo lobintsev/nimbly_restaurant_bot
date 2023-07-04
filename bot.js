@@ -4,7 +4,7 @@ import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
 import bwipjs from "bwip-js";
 import sharp from "sharp";
-import db, { readData } from './db.js';
+import db, { readData } from "./db.js";
 
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
@@ -18,46 +18,54 @@ BOT.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id.toString();
   const data = await readData();
 
-  console.log('Data read from the database:', data);
+  console.log("Data read from the database:", data);
 
-  const user = data.users.find(u => {
-    console.log(`Comparing database chatId (${u.chatId}) with message chatId (${chatId})`);
+  const user = data.users.find((u) => {
+    console.log(
+      `Comparing database chatId (${u.chatId}) with message chatId (${chatId})`
+    );
     return u.chatId.toString() === chatId;
   });
 
-  console.log('Value of user:', user);
+  console.log("Value of user:", user);
 
   if (user) {
     console.log('Sending "Hi" message...');
-    BOT.sendMessage(chatId, "Привет! Можете проверить баланс или связаться с нами", createMainMenuKeyboard());
-    console.log('Message sent.');
+    BOT.sendMessage(
+      chatId,
+      "Привет! Можете проверить баланс или связаться с нами",
+      createMainMenuKeyboard()
+    );
+    console.log("Message sent.");
   } else {
     console.log('Sending "EloHi" message...');
-    BOT.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
-    console.log('Message sent.');
+    BOT.sendMessage(
+      chatId,
+      "Просим Вас пройти регистрацию.",
+      createRegistrationKeyboard()
+    );
+    console.log("Message sent.");
   }
 });
 
 BOT.onText(/Программа Лояльности/, (msg) => {
- 
-    const chatId = msg.chat.id;
+  const chatId = msg.chat.id;
 
-    // Retrieve the user's phone from the database
-    const user = db.data.users.find((u) => u.chatId === chatId);
+  // Retrieve the user's phone from the database
+  const user = db.data.users.find((u) => u.chatId === chatId);
 
-    // If the user is not found, they haven't registered yet.
-    if (!user) {
-      BOT.sendMessage(
-        chatId,
-        "Please register first!",
-        createRegistrationKeyboard()
-      );
-      return;
-    }
+  // If the user is not found, they haven't registered yet.
+  if (!user) {
+    BOT.sendMessage(
+      chatId,
+      "Please register first!",
+      createRegistrationKeyboard()
+    );
+    return;
+  }
 
-    fetchData(chatId, user.phone);
-  });
-
+  fetchData(chatId, user.phone);
+});
 
 BOT.onText(/Обратная связь/, (msg) => {
   help(msg);
@@ -112,7 +120,7 @@ function createMainMenuKeyboard() {
 }
 
 function createRegistrationKeyboard() {
-  console.log('createRegistrationKeyboard() called');
+  console.log("createRegistrationKeyboard() called");
   return {
     reply_markup: {
       resize_keyboard: true,
@@ -234,7 +242,6 @@ function formatData(data, chatId) {
   //   if (card.number) message += `Карта: ${card.number} \n`;
   // });
 
- 
   return message;
 }
 
@@ -261,19 +268,24 @@ async function generateBarcode(number, name, surname) {
               responseType: "arraybuffer",
             });
             const logoBuffer = Buffer.from(response.data, "binary");
-
             // Resize the images
-            const logoWidth = 100;
             const logoHeight = 100;
             const resizedLogoBuffer = await sharp(logoBuffer)
-              .resize(logoWidth, logoHeight)
+              .resize({ height: logoHeight })
               .toBuffer();
-            const barcodeWidth = 700;
             const barcodeHeight = 300;
             const resizedBarcodeBuffer = await sharp(pngBuffer)
-              .resize(barcodeWidth, barcodeHeight)
+              .resize({ height: barcodeHeight })
               .toBuffer();
 
+            // Get the width of the resized images
+            const [logoMetadata, barcodeMetadata] = await Promise.all([
+              sharp(resizedLogoBuffer).metadata(),
+              sharp(resizedBarcodeBuffer).metadata(),
+            ]);
+
+            const logoWidth = logoMetadata.width;
+            const barcodeWidth = barcodeMetadata.width;
             // Create SVG text
             const text = `${name} ${surname}`;
             const svgText = `
@@ -287,8 +299,8 @@ async function generateBarcode(number, name, surname) {
             const svgTextBuffer = Buffer.from(svgText);
 
             // Create a new blank image
-            const baseWidth = 800;
-            const baseHeight = 600;
+            const baseWidth = 1024;
+            const baseHeight = 768;
             const image = await sharp({
               create: {
                 width: baseWidth,
@@ -300,27 +312,27 @@ async function generateBarcode(number, name, surname) {
 
             // Composite the images and the SVG text
             const outputBuffer = await image
-              .composite([
-                {
-                  input: resizedLogoBuffer,
-                  top: 50,
-                  left: (baseWidth - logoWidth) / 2,
-                },
-                {
-                  input: resizedBarcodeBuffer,
-                  top: 250,
-                  left: (baseWidth - barcodeWidth) / 2,
-                },
-                {
-                  input: svgTextBuffer,
-                  top: 50,
-                  left: (baseWidth - barcodeWidth) / 2,
-                },
-              ])
-              .png()
-              .toBuffer();
-
-            resolve(outputBuffer);
+            .composite([
+              {
+                input: resizedLogoBuffer,
+                top: 70,
+                left: Math.round((baseWidth - logoWidth) / 2),
+              },
+              {
+                input: resizedBarcodeBuffer,
+                top: 250,
+                left: Math.round((baseWidth - barcodeWidth) / 2),
+              },
+              {
+                input: svgTextBuffer,
+                top: 500,
+                left: Math.round((baseWidth - barcodeWidth) / 2),
+              },
+            ])
+            .png()
+            .toBuffer();
+          
+          resolve(outputBuffer);
           } catch (error) {
             reject(error);
           }
