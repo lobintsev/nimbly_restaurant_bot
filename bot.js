@@ -58,7 +58,7 @@ BOT.onText(/Программа Лояльности/, (msg) => {
 
   // If the user is not found, they haven't registered yet.
   if (!user) {
-    BOT.sendMessage(chatId, "Please register first!", register());
+    BOT.sendMessage(chatId, "Просим Вас пройти регистрацию.", register());
     return;
   }
 
@@ -74,9 +74,9 @@ BOT.on('text', (msg) => {
   if (awaitingHelpResponse.has(chatId)) { // If we're expecting a help response from this user...
     const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}`; // Format message to admin
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
-    BOT.sendMessage(chatId, "Your message has been sent to the admin."); // Notify the user
+    BOT.sendMessage(chatId, "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами", createMainMenuKeyboard());
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
-    createMainMenuKeyboard();
+    
   }
 });
 
@@ -138,14 +138,14 @@ function createRegistrationKeyboard() {
   return {
     reply_markup: {
       resize_keyboard: true,
-      keyboard: [[{ text: "Продолжить регистрацию", request_contact: true }]],
+      keyboard: [[{ text: "Передать контактные данные", request_contact: true }]],
     },
   };
 }
 
 function help(msg) {
   const chatId = msg.chat.id;
-  BOT.sendMessage(chatId, "Please write your message to the admin:");
+  BOT.sendMessage(chatId, "Напишите сообщение администратору:");
   awaitingHelpResponse.set(chatId, true); // Indicate that we're awaiting a help response from this user
 }
 
