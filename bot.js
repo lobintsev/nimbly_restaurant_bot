@@ -9,7 +9,9 @@ import db, { readData } from "./db.js";
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
 const CARD_LOGO = process.env.CARD_LOGO;
+const ADMIN_CHAT_ID = 5060666380;
 
+let awaitingHelpResponse = new Map(); // A map to hold users that are expected to send a help message
 const userStates = {};
 
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
@@ -38,7 +40,7 @@ BOT.onText(/\/start/, async (msg) => {
     );
     console.log("Message sent.");
   } else {
-    console.log('Sending "EloHi" message...');
+    console.log('Sending "Not Found" message...');
     BOT.sendMessage(
       chatId,
       "Просим Вас пройти регистрацию.",
@@ -56,11 +58,7 @@ BOT.onText(/Программа Лояльности/, (msg) => {
 
   // If the user is not found, they haven't registered yet.
   if (!user) {
-    BOT.sendMessage(
-      chatId,
-      "Please register first!",
-      createRegistrationKeyboard()
-    );
+    BOT.sendMessage(chatId, "Please register first!", register());
     return;
   }
 
@@ -71,42 +69,57 @@ BOT.onText(/Обратная связь/, (msg) => {
   help(msg);
 });
 
+BOT.on('text', (msg) => {
+  const chatId = msg.chat.id;
+  if (awaitingHelpResponse.has(chatId)) { // If we're expecting a help response from this user...
+    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}`; // Format message to admin
+    BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
+    BOT.sendMessage(chatId, "Your message has been sent to the admin."); // Notify the user
+    awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
+  }
+});
+
 BOT.on("contact", async (msg) => {
   const chatId = msg.chat.id;
+  const phone = msg.contact.phone_number;
 
-  if (userStates[chatId] && userStates[chatId].state === "PHONE_REGISTRATION") {
-    BOT.sendChatAction(chatId, "typing");
-    try {
-      const response = await axios.post(
-        "https://api.squarefi.io/api:aYQXf2CE/iiko/customers/add",
-        {
-          tenants_id: TENANT_ID,
-          name: msg.contact.first_name,
-          surname: msg.contact.last_name ?? null,
-          phone: msg.contact.phone_number,
-        }
-      );
-
-      if (response.status === 200) {
-        BOT.sendMessage(
-          chatId,
-          "Вы зарегистрированы!",
-          createMainMenuKeyboard()
-        );
-        await fetchData(chatId, msg.contact.phone_number);
-      } else {
-        BOT.sendMessage(chatId, "Регистрация не удалась :(", {
-          reply_markup: { remove_keyboard: true },
-        });
+  BOT.sendChatAction(chatId, "typing");
+  try {
+    const response = await axios.post(
+      "https://api.squarefi.io/api:aYQXf2CE/iiko/customers/add",
+      {
+        tenants_id: TENANT_ID,
+        name: msg.contact.first_name,
+        surname: msg.contact.last_name ?? null,
+        phone: msg.contact.phone_number,
       }
-    } catch (error) {
-      console.error("Error:", error);
-      BOT.sendMessage(chatId, "An error occurred during registration.", {
+    );
+
+    if (response.status === 200) {
+      BOT.sendMessage(
+        chatId,
+        "Вы зарегистрированы!",
+
+        createMainMenuKeyboard()
+      );
+      // Save the user to the database
+      db.data.users.push({ chatId, phone });
+
+      // Write the changes to the JSON file
+      await db.write();
+      await fetchData(chatId, msg.contact.phone_number);
+    } else {
+      BOT.sendMessage(chatId, "Регистрация не удалась :(", {
         reply_markup: { remove_keyboard: true },
       });
     }
-    delete userStates[chatId];
+  } catch (error) {
+    console.error("Error:", error);
+    BOT.sendMessage(chatId, "An error occurred during registration.", {
+      reply_markup: { remove_keyboard: true },
+    });
   }
+  delete userStates[chatId];
 });
 
 function createMainMenuKeyboard() {
@@ -130,12 +143,13 @@ function createRegistrationKeyboard() {
 }
 
 function help(msg) {
-  BOT.sendMessage(msg.chat.id, "Help for this bot", { parse_mode: "markdown" });
+  const chatId = msg.chat.id;
+  BOT.sendMessage(chatId, "Please write your message to the admin:");
+  awaitingHelpResponse.set(chatId, true); // Indicate that we're awaiting a help response from this user
 }
 
 function register(msg) {
   const chatId = msg.chat.id;
-  userStates[chatId] = { state: "PHONE_REGISTRATION" };
   BOT.sendMessage(
     chatId,
     "Для регистрации в бонусной системе необходимо разрешить доступ к контактам",
@@ -143,81 +157,83 @@ function register(msg) {
   );
 }
 
-// Rest of the code remains the same...
-
-BOT.on("contact", async (msg) => {
-  const chatId = msg.chat.id;
-  const phone = msg.contact.phone_number;
-
-  // Save the user to the database
-  db.data.users.push({ chatId, phone });
-
-  // Write the changes to the JSON file
-  await db.write();
-
-  if (userStates[chatId] && userStates[chatId].state === "PHONE_REGISTRATION") {
-    BOT.sendChatAction(chatId, "typing");
-    try {
-      const response = await axios.post(
-        "https://api.squarefi.io/api:aYQXf2CE/iiko/customers/add",
-        {
-          tenants_id: TENANT_ID,
-          name: msg.contact.first_name,
-          surname: msg.contact.last_name ?? null,
-          phone: msg.contact.phone_number,
-        }
-      );
-
-      if (response.status === 200) {
-        BOT.sendMessage(chatId, "Вы зарегистрированы!", options);
-        await fetchData(chatId, msg.contact.phone_number);
-      } else {
-        BOT.sendMessage(chatId, "Регистрация не удалась :(", {
-          reply_markup: { remove_keyboard: true },
-        });
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      BOT.sendMessage(chatId, "An error occurred during registration.", {
-        reply_markup: { remove_keyboard: true },
-      });
-    }
-    delete userStates[chatId];
-  }
-});
+// Define a cache to store fetched data
+const dataCache = new Map();
 
 async function fetchData(chatId, phone) {
   try {
-    const response = await axios.get(
-      `https://api.squarefi.io/api:aYQXf2CE/iiko/customers/info?tenants_id=${TENANT_ID}&phone=${phone}`
-    );
-    const data = response.data;
-    const formattedData = formatData(data, chatId);
-
-    BOT.sendMessage(chatId, formattedData, { parse_mode: "markdown" });
-
-    if (data.cards && data.cards.length > 0) {
-      const barcodeImage = await generateBarcode(
-        data.cards[0].number,
-        data.name,
-        data.surname
+    if (!dataCache.has(phone)) {
+      console.log(`Fetching data for phone: ${phone}`);
+      const response = await axios.get(
+        `https://api.squarefi.io/api:aYQXf2CE/iiko/customers/info?tenants_id=${TENANT_ID}&phone=${phone}`
       );
-      if (barcodeImage) {
-        BOT.sendPhoto(chatId, barcodeImage, {
-          caption:
-            "Ваша карта. Рекомендуем закрепить это сообщение для быстрого доступа",
-        });
-      }
+      const data = response.data;
+      dataCache.set(phone, data);
     }
+
+    console.log(`Sending message to chat: ${chatId}`);
+    const data = dataCache.get(phone);
+    const formattedData = formatData(data, chatId);
+    const inlineKeyboard = {
+      inline_keyboard: [[{ text: "Моя карта", callback_data: "show_card" }]],
+    };
+    BOT.sendMessage(chatId, formattedData, {
+      parse_mode: "markdown",
+      reply_markup: inlineKeyboard,
+    });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error fetching data:", error);
     BOT.sendMessage(chatId, "An error occurred while fetching data.", {
       reply_markup: { remove_keyboard: true },
     });
   }
 }
 
-function formatData(data, chatId) {
+BOT.on("callback_query", async (query) => {
+  const chatId = query.message.chat.id;
+  if (query.data === "show_card") {
+    try {
+      const user = db.data.users.find((u) => u.chatId === chatId);
+      if (user) {
+        const phone = user.phone;
+        if (!dataCache.has(phone)) {
+          console.log(`Fetching data for phone: ${phone}`);
+          const response = await axios.get(
+            `https://api.squarefi.io/api:aYQXf2CE/iiko/customers/info?tenants_id=${TENANT_ID}&phone=${phone}`
+          );
+          const data = response.data;
+          dataCache.set(phone, data);
+        }
+        console.log(`Sending card to chat: ${chatId}`);
+        const data = dataCache.get(phone);
+        if (data.cards && data.cards.length > 0) {
+          const barcodeImage = await generateBarcode(
+            data.cards[0].number,
+            data.name,
+            data.surname
+          );
+          if (barcodeImage) {
+            BOT.sendPhoto(chatId, barcodeImage, {
+              caption: "Рекомендуем закрепить вашу карту для быстрого доступа",
+            });
+          }
+        }
+      } else {
+        console.log(`User not found in database for chatId: ${chatId}`);
+        BOT.sendMessage(chatId, "User not found in the database.", {
+          reply_markup: { remove_keyboard: true },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching the card:", error);
+      BOT.sendMessage(chatId, "An error occurred while fetching the card.", {
+        reply_markup: { remove_keyboard: true },
+      });
+    }
+  }
+});
+
+function formatData(data) {
   let message = `*Ваши данные* \n\n`;
 
   if (data.name && data.surname)
@@ -231,16 +247,6 @@ function formatData(data, chatId) {
       message += `${balanceObj.name}: ${balanceObj.balance.toFixed(2)} \n`;
   });
 
-  // message += "\n*Программы*: \n";
-  // data.categories?.forEach((category) => {
-  //   if (category.name && category.isActive !== undefined)
-  //     message += `${category.name}: ${category.isActive ? "🗸" : "🗴"} \n`;
-  // });
-
-  // message += "\n*Карты*: \n";
-  // data.cards?.forEach((card) => {
-  //   if (card.number) message += `Карта: ${card.number} \n`;
-  // });
 
   return message;
 }
@@ -312,27 +318,27 @@ async function generateBarcode(number, name, surname) {
 
             // Composite the images and the SVG text
             const outputBuffer = await image
-            .composite([
-              {
-                input: resizedLogoBuffer,
-                top: 70,
-                left: Math.round((baseWidth - logoWidth) / 2),
-              },
-              {
-                input: resizedBarcodeBuffer,
-                top: 250,
-                left: Math.round((baseWidth - barcodeWidth) / 2),
-              },
-              {
-                input: svgTextBuffer,
-                top: 500,
-                left: Math.round((baseWidth - barcodeWidth) / 2),
-              },
-            ])
-            .png()
-            .toBuffer();
-          
-          resolve(outputBuffer);
+              .composite([
+                {
+                  input: resizedLogoBuffer,
+                  top: 70,
+                  left: Math.round((baseWidth - logoWidth) / 2),
+                },
+                {
+                  input: resizedBarcodeBuffer,
+                  top: 250,
+                  left: Math.round((baseWidth - barcodeWidth) / 2),
+                },
+                {
+                  input: svgTextBuffer,
+                  top: 500,
+                  left: Math.round((baseWidth - barcodeWidth) / 2),
+                },
+              ])
+              .png()
+              .toBuffer();
+
+            resolve(outputBuffer);
           } catch (error) {
             reject(error);
           }
