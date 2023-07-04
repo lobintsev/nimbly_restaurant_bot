@@ -9,7 +9,7 @@ import db, { readData } from "./db.js";
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
 const CARD_LOGO = process.env.CARD_LOGO;
-const ADMIN_CHAT_ID = 5060666380;
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
 
 let awaitingHelpResponse = new Map(); // A map to hold users that are expected to send a help message
 const userStates = {};
