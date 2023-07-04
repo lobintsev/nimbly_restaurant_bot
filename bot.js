@@ -76,6 +76,7 @@ BOT.on('text', (msg) => {
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
     BOT.sendMessage(chatId, "Your message has been sent to the admin."); // Notify the user
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
+    createMainMenuKeyboard();
   }
 });
 
