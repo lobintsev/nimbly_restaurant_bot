@@ -4,7 +4,7 @@ import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
 import bwipjs from "bwip-js";
 import sharp from "sharp";
-import db, { readData } from "./db.js";
+import db, { writeData, readData } from "./db.js";
 
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
@@ -69,13 +69,20 @@ BOT.onText(/Обратная связь/, (msg) => {
   help(msg);
 });
 
-BOT.on('text', (msg) => {
+BOT.on('text', async (msg) => {  // Make the function asynchronous
   const chatId = msg.chat.id;
   if (awaitingHelpResponse.has(chatId)) { // If we're expecting a help response from this user...
     const username = msg.from.username || 'No username'; // Get the username or set a default
-    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}`; // Format message to admin
+    const phone = msg.contact ? msg.contact.phone_number : 'No phone'; // Get the phone or set a default
+    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}\n- Phone: ${phone}`; // Format message to admin
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
     BOT.sendMessage(chatId, "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами", createMainMenuKeyboard());
+
+    // Database operation
+    const data = await readData();  // Read the data from the file
+    data.messages.push({ chatId, phone, messageToAdmin });  // Add the new message
+    await writeData(data);  // Write the updated data back to the file
+
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
   }
 });
