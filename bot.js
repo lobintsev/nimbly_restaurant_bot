@@ -322,7 +322,7 @@ async function generateBarcode(number, name, surname) {
             const svgText = `
               <svg width="700" height="${barcodeHeight}">
                 <style>
-                  .text { fill: #000; font-size: 50px; font-weight: bold;}
+                  .text { fill: #000; font-size: 50px; font-weight: bold;  font-family: 'Roboto', sans-serif;}
                 </style>
                 <text x="50%" y="50%" text-anchor="middle" class="text">${text}</text>
               </svg>
