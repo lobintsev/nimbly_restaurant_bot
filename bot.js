@@ -73,7 +73,7 @@ BOT.on('text', (msg) => {
   const chatId = msg.chat.id;
   if (awaitingHelpResponse.has(chatId)) { // If we're expecting a help response from this user...
     const username = msg.from.username || 'No username'; // Get the username or set a default
-    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: ${username}`; // Format message to admin
+    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}`; // Format message to admin
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
     BOT.sendMessage(chatId, "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами", createMainMenuKeyboard());
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
