@@ -72,17 +72,21 @@ BOT.onText(/Обратная связь/, (msg) => {
 BOT.on('text', (msg) => {
   const chatId = msg.chat.id;
   if (awaitingHelpResponse.has(chatId)) { // If we're expecting a help response from this user...
-    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}`; // Format message to admin
+    const username = msg.from.username || 'No username'; // Get the username or set a default
+    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: ${username}`; // Format message to admin
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
     BOT.sendMessage(chatId, "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами", createMainMenuKeyboard());
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
-    
   }
 });
 
 BOT.on("contact", async (msg) => {
   const chatId = msg.chat.id;
   const phone = msg.contact.phone_number;
+  const first_name = msg.contact.first_name || '';
+  const last_name = msg.contact.last_name || '';
+  const user_id = msg.contact.user_id || '';
+
 
   BOT.sendChatAction(chatId, "typing");
   try {
@@ -104,7 +108,7 @@ BOT.on("contact", async (msg) => {
         createMainMenuKeyboard()
       );
       // Save the user to the database
-      db.data.users.push({ chatId, phone });
+      db.data.users.push({ chatId, phone, first_name, last_name, user_id });
 
       // Write the changes to the JSON file
       await db.write();
@@ -171,7 +175,7 @@ async function fetchData(chatId, phone) {
       const data = response.data;
       dataCache.set(phone, data);
     }
-
+console.log(dataCache);
     console.log(`Sending message to chat: ${chatId}`);
     const data = dataCache.get(phone);
     const formattedData = formatData(data, chatId);
@@ -276,11 +280,11 @@ async function generateBarcode(number, name, surname) {
             });
             const logoBuffer = Buffer.from(response.data, "binary");
             // Resize the images
-            const logoHeight = 100;
+            const logoHeight = 200;
             const resizedLogoBuffer = await sharp(logoBuffer)
               .resize({ height: logoHeight })
               .toBuffer();
-            const barcodeHeight = 300;
+            const barcodeHeight = 200;
             const resizedBarcodeBuffer = await sharp(pngBuffer)
               .resize({ height: barcodeHeight })
               .toBuffer();
@@ -298,7 +302,7 @@ async function generateBarcode(number, name, surname) {
             const svgText = `
               <svg width="${barcodeWidth}" height="${barcodeHeight}">
                 <style>
-                  .text { fill: #000; font-size: 40px; font-weight: bold;}
+                  .text { fill: #000; font-size: 50px; font-weight: bold;}
                 </style>
                 <text x="50%" y="50%" text-anchor="middle" class="text">${text}</text>
               </svg>
@@ -327,7 +331,7 @@ async function generateBarcode(number, name, surname) {
                 },
                 {
                   input: resizedBarcodeBuffer,
-                  top: 250,
+                  top: 300,
                   left: Math.round((baseWidth - barcodeWidth) / 2),
                 },
                 {

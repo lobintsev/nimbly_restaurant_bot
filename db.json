@@ -1,12 +1,15 @@
 {
   "users": [
     {
-      "chatId": 335458913,
-      "phone": "+79185353502"
+      "chatId": 5793982900,
+      "phone": "79188967992"
     },
     {
-      "chatId": 5060666380,
-      "phone": "79889464173"
+      "chatId": 335458913,
+      "phone": "+79185353502",
+      "first_name": "Anton",
+      "last_name": "Lobintsev",
+      "user_id": 335458913
     }
   ],
   "messages": []
