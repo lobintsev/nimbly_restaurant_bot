@@ -69,19 +69,25 @@ BOT.onText(/Обратная связь/, (msg) => {
   help(msg);
 });
 
-BOT.on('text', async (msg) => {  // Make the function asynchronous
+BOT.on("text", async (msg) => {
+  // Make the function asynchronous
   const chatId = msg.chat.id;
-  if (awaitingHelpResponse.has(chatId)) { // If we're expecting a help response from this user...
-    const username = msg.from.username || 'No username'; // Get the username or set a default
-    const phone = msg.contact ? msg.contact.phone_number : 'No phone'; // Get the phone or set a default
+  if (awaitingHelpResponse.has(chatId)) {
+    // If we're expecting a help response from this user...
+    const username = msg.from.username || "No username"; // Get the username or set a default
+    const phone = msg.contact ? msg.contact.phone_number : "No phone"; // Get the phone or set a default
     const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}\n- Phone: ${phone}`; // Format message to admin
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
-    BOT.sendMessage(chatId, "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами", createMainMenuKeyboard());
+    BOT.sendMessage(
+      chatId,
+      "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами",
+      createMainMenuKeyboard()
+    );
 
     // Database operation
-    const data = await readData();  // Read the data from the file
-    data.messages.push({ chatId, phone, messageToAdmin });  // Add the new message
-    await writeData(data);  // Write the updated data back to the file
+    const data = await readData(); // Read the data from the file
+    data.messages.push({ chatId, phone, messageToAdmin }); // Add the new message
+    await writeData(data); // Write the updated data back to the file
 
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
   }
@@ -90,10 +96,9 @@ BOT.on('text', async (msg) => {  // Make the function asynchronous
 BOT.on("contact", async (msg) => {
   const chatId = msg.chat.id;
   const phone = msg.contact.phone_number;
-  const first_name = msg.contact.first_name || '';
-  const last_name = msg.contact.last_name || '';
-  const user_id = msg.contact.user_id || '';
-
+  const first_name = msg.contact.first_name || "";
+  const last_name = msg.contact.last_name || "";
+  const user_id = msg.contact.user_id || "";
 
   BOT.sendChatAction(chatId, "typing");
   try {
@@ -149,7 +154,9 @@ function createRegistrationKeyboard() {
   return {
     reply_markup: {
       resize_keyboard: true,
-      keyboard: [[{ text: "Передать контактные данные", request_contact: true }]],
+      keyboard: [
+        [{ text: "Передать контактные данные", request_contact: true }],
+      ],
     },
   };
 }
@@ -174,28 +181,35 @@ const dataCache = new Map();
 
 async function fetchData(chatId, phone) {
   try {
+    let data;
+
     if (!dataCache.has(phone)) {
       console.log(`Fetching data for phone: ${phone}`);
       const response = await axios.get(
         `https://api.squarefi.io/api:aYQXf2CE/iiko/customers/info?tenants_id=${TENANT_ID}&phone=${phone}`
       );
-      const data = response.data;
+      data = response.data;
       dataCache.set(phone, data);
+    } else {
+      data = dataCache.get(phone);
     }
-console.log(dataCache);
+
+    console.log(dataCache);
     console.log(`Sending message to chat: ${chatId}`);
-    const data = dataCache.get(phone);
+
     const formattedData = formatData(data, chatId);
     const inlineKeyboard = {
       inline_keyboard: [[{ text: "Моя карта", callback_data: "show_card" }]],
     };
-    BOT.sendMessage(chatId, formattedData, {
+
+    await BOT.sendMessage(chatId, formattedData, {
       parse_mode: "markdown",
       reply_markup: inlineKeyboard,
     });
   } catch (error) {
     console.error("Error fetching data:", error);
-    BOT.sendMessage(chatId, "An error occurred while fetching data.", {
+
+    await BOT.sendMessage(chatId, "An error occurred while fetching data.", {
       reply_markup: { remove_keyboard: true },
     });
   }
@@ -259,7 +273,6 @@ function formatData(data) {
       message += `${balanceObj.name}: ${balanceObj.balance.toFixed(2)} \n`;
   });
 
-
   return message;
 }
 
@@ -291,7 +304,7 @@ async function generateBarcode(number, name, surname) {
             const resizedLogoBuffer = await sharp(logoBuffer)
               .resize({ height: logoHeight })
               .toBuffer();
-            const barcodeHeight = 200;
+            const barcodeHeight = 300;
             const resizedBarcodeBuffer = await sharp(pngBuffer)
               .resize({ height: barcodeHeight })
               .toBuffer();
@@ -307,7 +320,7 @@ async function generateBarcode(number, name, surname) {
             // Create SVG text
             const text = `${name} ${surname}`;
             const svgText = `
-              <svg width="${barcodeWidth}" height="${barcodeHeight}">
+              <svg width="700" height="${barcodeHeight}">
                 <style>
                   .text { fill: #000; font-size: 50px; font-weight: bold;}
                 </style>
@@ -317,8 +330,8 @@ async function generateBarcode(number, name, surname) {
             const svgTextBuffer = Buffer.from(svgText);
 
             // Create a new blank image
-            const baseWidth = 1024;
-            const baseHeight = 768;
+            const baseWidth = 1280;
+            const baseHeight = 720;
             const image = await sharp({
               create: {
                 width: baseWidth,
@@ -334,16 +347,16 @@ async function generateBarcode(number, name, surname) {
                 {
                   input: resizedLogoBuffer,
                   top: 70,
-                  left: Math.round((baseWidth - logoWidth) / 2),
-                },
-                {
-                  input: resizedBarcodeBuffer,
-                  top: 300,
-                  left: Math.round((baseWidth - barcodeWidth) / 2),
+                  left: 70,
                 },
                 {
                   input: svgTextBuffer,
-                  top: 500,
+                  top: 70,
+                  left: Math.round(baseWidth - 700),
+                },
+                {
+                  input: resizedBarcodeBuffer,
+                  top: 380,
                   left: Math.round((baseWidth - barcodeWidth) / 2),
                 },
               ])
