@@ -5,7 +5,7 @@ import axios from "axios";
 import bwipjs from "bwip-js";
 import sharp from "sharp";
 import db, { writeData, readData } from "./db.js";
-import Message from "./models/message.js"; 
+import Message from "./models/Message.js"; 
 
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
