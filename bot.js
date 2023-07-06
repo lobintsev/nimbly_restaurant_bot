@@ -5,6 +5,7 @@ import axios from "axios";
 import bwipjs from "bwip-js";
 import sharp from "sharp";
 import db, { writeData, readData } from "./db.js";
+import Message from "./models/message.js"; 
 
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
@@ -69,13 +70,27 @@ BOT.onText(/Обратная связь/, (msg) => {
   help(msg);
 });
 
+
+
+
 BOT.on("text", async (msg) => {
   // Make the function asynchronous
   const chatId = msg.chat.id;
+
+  // Retrieve the user's phone from the database
+  const user = db.data.users.find((u) => u.chatId === chatId);
+  let phone = user ? user.phone : "No phone"; // Get the phone or set a default
+
   if (awaitingHelpResponse.has(chatId)) {
     // If we're expecting a help response from this user...
     const username = msg.from.username || "No username"; // Get the username or set a default
-    const phone = msg.contact ? msg.contact.phone_number : "No phone"; // Get the phone or set a default
+
+    // If the phone is not available, try to fetch it again
+    if (phone === "No phone") {
+      const updatedUser = db.data.users.find((u) => u.chatId === chatId);
+      phone = updatedUser ? updatedUser.phone : "No phone";
+    }
+
     const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}\n- Phone: ${phone}`; // Format message to admin
     BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
     BOT.sendMessage(
@@ -88,6 +103,13 @@ BOT.on("text", async (msg) => {
     const data = await readData(); // Read the data from the file
     data.messages.push({ chatId, phone, messageToAdmin }); // Add the new message
     await writeData(data); // Write the updated data back to the file
+
+    // Write message to MariaDB
+    await Message.create({
+      chatId,
+      phone,
+      message: messageToAdmin
+    });
 
     awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
   }

@@ -9,7 +9,7 @@ import BOT from './bot.js';  // Import your bot from its module
     await sequelize.sync();
     console.log('Database synchronized successfully.');
 
-    BOT.launch();  // Start your bot here
+   
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
