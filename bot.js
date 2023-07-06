@@ -281,18 +281,24 @@ BOT.on("callback_query", async (query) => {
   }
 });
 
+function escapeMarkdown(text) {
+  const specialCharacters = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+  const escapedText = [...text].map(char => specialCharacters.includes(char) ? `\\${char}` : char).join('');
+  return escapedText;
+}
+
 function formatData(data) {
-  let message = `*Ваши данные* \n\n`;
+  let message = "*Ваши данные* \n\n";
 
   if (data.name && data.surname)
-    message += `Имя: ${data.name} ${data.surname} \n`;
-  if (data.phone) message += `Телефон: ${data.phone} \n`;
-  if (data.email) message += `E-mail: ${data.email} \n\n`;
+    message += `Имя: ${escapeMarkdown(data.name)} ${escapeMarkdown(data.surname)} \n`;
+  if (data.phone) message += `Телефон: ${escapeMarkdown(data.phone).replace('\\+', '+')} \n`;
+  if (data.email) message += `E-mail: ${escapeMarkdown(data.email).replace('\\.', '.')} \n\n`;
 
   message += "*Бонусы*: \n";
   data.walletBalances?.forEach((balanceObj) => {
     if (balanceObj.name && balanceObj.balance)
-      message += `${balanceObj.name}: ${balanceObj.balance.toFixed(2)} \n`;
+      message += `${escapeMarkdown(balanceObj.name)}: ${balanceObj.balance.toFixed(2)} \n`;
   });
 
   return message;
@@ -352,8 +358,8 @@ async function generateBarcode(number, name, surname) {
             const svgTextBuffer = Buffer.from(svgText);
 
             // Create a new blank image
-            const baseWidth = 1280;
-            const baseHeight = 720;
+            const baseWidth = 720;
+            const baseHeight = 840;
             const image = await sharp({
               create: {
                 width: baseWidth,
@@ -369,16 +375,16 @@ async function generateBarcode(number, name, surname) {
                 {
                   input: resizedLogoBuffer,
                   top: 70,
-                  left: 70,
+                  left: Math.round((baseWidth - logoWidth) / 2),
                 },
                 {
                   input: svgTextBuffer,
-                  top: 70,
+                  top: 250,
                   left: Math.round(baseWidth - 700),
                 },
                 {
                   input: resizedBarcodeBuffer,
-                  top: 380,
+                  top: 500,
                   left: Math.round((baseWidth - barcodeWidth) / 2),
                 },
               ])
