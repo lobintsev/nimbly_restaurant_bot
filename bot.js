@@ -25,7 +25,7 @@ BOT.onText(/\/start/, async (msg) => {
   console.log("Data read from the database:", user);
 
   if (user) {
-    console.log('Sending "Hi" message...', chatId);
+    console.log('Sending "Hi" message...', );
     BOT.sendMessage(
       chatId,
       "Привет! Можете проверить баланс или связаться с нами",
