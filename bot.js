@@ -2,33 +2,27 @@ import dotenv from "dotenv";
 dotenv.config();
 import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
-import db, { writeData, readData } from "./db.js";
-import Message from "./models/Message.js"; 
+import Message from "./models/Message.js";
+import User from "./models/User.js";
 import generateCard from "./functions/generateCard.js";
 
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
 
-let awaitingHelpResponse = new Map(); // A map to hold users that are expected to send a help message
 const userStates = {};
 
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
 BOT.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id.toString();
-  const data = await readData();
-
-  console.log("Data read from the database:", data);
-
-  const user = data.users.find((u) => {
-    console.log(
-      `Comparing database chatId (${u.chatId}) with message chatId (${chatId})`
-    );
-    return u.chatId.toString() === chatId;
+  const user = await User.findOne({
+    where: {
+      chatId: chatId,
+    },
   });
 
-  console.log("Value of user:", user);
+  console.log("Data read from the database:", user);
 
   if (user) {
     console.log('Sending "Hi" message...');
@@ -49,11 +43,11 @@ BOT.onText(/\/start/, async (msg) => {
   }
 });
 
-BOT.onText(/Программа Лояльности/, (msg) => {
+BOT.onText(/Программа Лояльности/, async (msg) => {
   const chatId = msg.chat.id;
 
   // Retrieve the user's phone from the database
-  const user = db.data.users.find((u) => u.chatId === chatId);
+  const user = await User.findOne({ where: { chatId: chatId } });
 
   // If the user is not found, they haven't registered yet.
   if (!user) {
@@ -62,54 +56,38 @@ BOT.onText(/Программа Лояльности/, (msg) => {
   }
 
   fetchData(chatId, user.phone);
+  console.log("USER", user);
 });
 
 BOT.onText(/Обратная связь/, (msg) => {
-  help(msg);
+  const chatId = msg.chat.id;
+  // Mark the user as awaiting a response
+  userStates[chatId] = { awaitingHelpResponse: true };
+  // Ask the user to enter their message
+  BOT.sendMessage(chatId, "Напишите сообщение администратору:");
 });
 
-
-
-
-BOT.on("text", async (msg) => {
-  // Make the function asynchronous
+// When the user sends a message:
+BOT.on('text', async (msg) => {
   const chatId = msg.chat.id;
+  
+  // If the user is marked as awaiting a response:
+  if (userStates[chatId] && userStates[chatId].awaitingHelpResponse) {
+    const user = await User.findOne({ where: { chatId: chatId } });
+    const phone = user ? user.phone : "No phone";
+    const username = msg.from.username || "No username";
+    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}\n- Phone: ${phone}`;
 
-  // Retrieve the user's phone from the database
-  const user = db.data.users.find((u) => u.chatId === chatId);
-  let phone = user ? user.phone : "No phone"; // Get the phone or set a default
+    // Send the user's message to the admin
+    BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin);
+    // Confirm receipt of the message
+    BOT.sendMessage(chatId, "Ваше сообщение отправлено администратору. Мы скоро свяжемся с Вами.", createMainMenuKeyboard());
 
-  if (awaitingHelpResponse.has(chatId)) {
-    // If we're expecting a help response from this user...
-    const username = msg.from.username || "No username"; // Get the username or set a default
-
-    // If the phone is not available, try to fetch it again
-    if (phone === "No phone") {
-      const updatedUser = db.data.users.find((u) => u.chatId === chatId);
-      phone = updatedUser ? updatedUser.phone : "No phone";
-    }
-
-    const messageToAdmin = `${msg.text}\n\n- Message from User ID: ${chatId}\n- Username: @${username}\n- Phone: ${phone}`; // Format message to admin
-    BOT.sendMessage(ADMIN_CHAT_ID, messageToAdmin); // Send the help message to the admin
-    BOT.sendMessage(
-      chatId,
-      "Ваше сообщение отправлено администору. Мы скоро свяжемся с Вами",
-      createMainMenuKeyboard()
-    );
-
-    // Database operation
-    const data = await readData(); // Read the data from the file
-    data.messages.push({ chatId, phone, messageToAdmin }); // Add the new message
-    await writeData(data); // Write the updated data back to the file
-
-    // Write message to MariaDB
-    await Message.create({
-      chatId,
-      phone,
-      message: messageToAdmin
-    });
-
-    awaitingHelpResponse.delete(chatId); // Remove this user from the help response awaiting list
+    // Create a new message in the database
+    await Message.create({ chatId, phone, message: msg.text });
+    
+    // Mark the user as no longer awaiting a response
+    userStates[chatId].awaitingHelpResponse = false;
   }
 });
 
@@ -139,6 +117,14 @@ BOT.on("contact", async (msg) => {
 
         createMainMenuKeyboard()
       );
+
+      await User.create({
+        chatId,
+        phone,
+        first_name,
+        last_name,
+        user_id,
+      });
       // Save the user to the database
       db.data.users.push({ chatId, phone, first_name, last_name, user_id });
 
@@ -179,12 +165,6 @@ function createRegistrationKeyboard() {
       ],
     },
   };
-}
-
-function help(msg) {
-  const chatId = msg.chat.id;
-  BOT.sendMessage(chatId, "Напишите сообщение администратору:");
-  awaitingHelpResponse.set(chatId, true); // Indicate that we're awaiting a help response from this user
 }
 
 function register(msg) {
@@ -239,7 +219,7 @@ BOT.on("callback_query", async (query) => {
   const chatId = query.message.chat.id;
   if (query.data === "show_card") {
     try {
-      const user = db.data.users.find((u) => u.chatId === chatId);
+      const user = await User.findOne({ where: { chatId: chatId } }); // Retrieve the user from the database
       if (user) {
         const phone = user.phone;
         if (!dataCache.has(phone)) {
@@ -280,8 +260,29 @@ BOT.on("callback_query", async (query) => {
 });
 
 function escapeMarkdown(text) {
-  const specialCharacters = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
-  const escapedText = [...text].map(char => specialCharacters.includes(char) ? `\\${char}` : char).join('');
+  const specialCharacters = [
+    "_",
+    "*",
+    "[",
+    "]",
+    "(",
+    ")",
+    "~",
+    "`",
+    ">",
+    "#",
+    "+",
+    "-",
+    "=",
+    "|",
+    "{",
+    "}",
+    ".",
+    "!",
+  ];
+  const escapedText = [...text]
+    .map((char) => (specialCharacters.includes(char) ? `\\${char}` : char))
+    .join("");
   return escapedText;
 }
 
@@ -289,14 +290,20 @@ function formatData(data) {
   let message = "*Ваши данные* \n\n";
 
   if (data.name && data.surname)
-    message += `Имя: ${escapeMarkdown(data.name)} ${escapeMarkdown(data.surname)} \n`;
-  if (data.phone) message += `Телефон: ${escapeMarkdown(data.phone).replace('\\+', '+')} \n`;
-  if (data.email) message += `E-mail: ${escapeMarkdown(data.email).replace('\\.', '.')} \n\n`;
+    message += `Имя: ${escapeMarkdown(data.name)} ${escapeMarkdown(
+      data.surname
+    )} \n`;
+  if (data.phone)
+    message += `Телефон: ${escapeMarkdown(data.phone).replace("\\+", "+")} \n`;
+  if (data.email)
+    message += `E-mail: ${escapeMarkdown(data.email).replace("\\.", ".")} \n\n`;
 
   message += "*Бонусы*: \n";
   data.walletBalances?.forEach((balanceObj) => {
     if (balanceObj.name && balanceObj.balance)
-      message += `${escapeMarkdown(balanceObj.name)}: ${balanceObj.balance.toFixed(2)} \n`;
+      message += `${escapeMarkdown(
+        balanceObj.name
+      )}: ${balanceObj.balance.toFixed(2)} \n`;
   });
 
   return message;

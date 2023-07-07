@@ -1,5 +1,7 @@
 import sequelize from './sqlDatabase.js';
 import BOT from './bot.js';  // Import your bot from its module
+import dotenv from 'dotenv';
+dotenv.config();
 
 (async () => {
   try {
@@ -8,8 +10,6 @@ import BOT from './bot.js';  // Import your bot from its module
 
     await sequelize.sync();
     console.log('Database synchronized successfully.');
-
-   
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
