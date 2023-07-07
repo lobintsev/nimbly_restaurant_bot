@@ -25,7 +25,7 @@ BOT.onText(/\/start/, async (msg) => {
   console.log("Data read from the database:", user);
 
   if (user) {
-    console.log('Sending "Hi" message...');
+    console.log('Sending "Hi" message...', chatId);
     BOT.sendMessage(
       chatId,
       "Привет! Можете проверить баланс или связаться с нами",
@@ -33,7 +33,7 @@ BOT.onText(/\/start/, async (msg) => {
     );
     console.log("Message sent.");
   } else {
-    console.log('Sending "Not Found" message...');
+    console.log('Sending "Not Found" message...', chatId);
     BOT.sendMessage(
       chatId,
       "Просим Вас пройти регистрацию.",
@@ -125,11 +125,7 @@ BOT.on("contact", async (msg) => {
         last_name,
         user_id,
       });
-      // Save the user to the database
-      db.data.users.push({ chatId, phone, first_name, last_name, user_id });
-
-      // Write the changes to the JSON file
-      await db.write();
+      
       await fetchData(chatId, msg.contact.phone_number);
     } else {
       BOT.sendMessage(chatId, "Регистрация не удалась :(", {
