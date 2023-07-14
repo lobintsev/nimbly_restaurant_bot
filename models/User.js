@@ -2,8 +2,8 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../sqlDatabase.js';
 
 const User = sequelize.define('User', {
-  chatId: {
-    type: DataTypes.INTEGER,
+chatId: {
+    type: DataTypes.BIGINT, // Updated data type
     allowNull: false
   },
   phone: {
@@ -19,7 +19,7 @@ const User = sequelize.define('User', {
     allowNull: false
   },
   user_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false
   }
 }, {});

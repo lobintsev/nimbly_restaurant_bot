@@ -16,30 +16,31 @@ BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
 BOT.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id.toString();
+	
   const user = await User.findOne({
     where: {
       chatId: chatId,
     },
   });
 
-  console.log("Data read from the database:", user);
+
 
   if (user) {
-    console.log('Sending "Hi" message...', );
+    
     BOT.sendMessage(
       chatId,
       "Привет! Можете проверить баланс или связаться с нами",
       createMainMenuKeyboard()
     );
-    console.log("Message sent.");
+  
   } else {
-    console.log('Sending "Not Found" message...', chatId);
+
     BOT.sendMessage(
       chatId,
       "Просим Вас пройти регистрацию.",
       createRegistrationKeyboard()
     );
-    console.log("Message sent.");
+  
   }
 });
 
@@ -56,7 +57,7 @@ BOT.onText(/Программа Лояльности/, async (msg) => {
   }
 
   fetchData(chatId, user.phone);
-  console.log("USER", user);
+
 });
 
 BOT.onText(/Обратная связь/, (msg) => {
@@ -164,7 +165,14 @@ function createRegistrationKeyboard() {
 }
 
 function register(msg) {
+  if (!msg) {
+    console.log("msg is undefined. Ignoring register function.");
+    return;
+  }
+
+ 
   const chatId = msg.chat.id;
+
   BOT.sendMessage(
     chatId,
     "Для регистрации в бонусной системе необходимо разрешить доступ к контактам",
@@ -179,18 +187,15 @@ async function fetchData(chatId, phone) {
   try {
     let data;
 
-    if (!dataCache.has(phone)) {
+  
       console.log(`Fetching data for phone: ${phone}`);
       const response = await axios.get(
         `https://api.squarefi.io/api:aYQXf2CE/iiko/customers/info?tenants_id=${TENANT_ID}&phone=${phone}`
       );
       data = response.data;
       dataCache.set(phone, data);
-    } else {
-      data = dataCache.get(phone);
-    }
 
-    console.log(dataCache);
+  
     console.log(`Sending message to chat: ${chatId}`);
 
     const formattedData = formatData(data, chatId);
