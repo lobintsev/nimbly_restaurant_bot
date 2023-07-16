@@ -17,7 +17,7 @@ const url = 'https://' + process.env.VERCEL_URL;
 
 const userStates = {};
 
-bot.setWebHook(`${url}/bot${process.env.TELEGRAM_TOKEN}`);
+BOT.setWebHook(`${url}/bot${process.env.TELEGRAM_TOKEN}`);
 
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 

@@ -1,8 +1,8 @@
 export default {
-    database: 'bebop_bonus',
-    username: 'root',
-    password: 'Overture1928!@',
-    host: 'localhost',  // No protocol
-    dialect: 'mariadb',
-    port: 3306,  // Integer not string
+    database: process.env.DB,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,  // No protocol
+    dialect: process.env.DB_DIALECT,
+    port: process.env.DB_PORT,  // Integer not string
   };
