@@ -1,5 +1,5 @@
 import sequelize from './sqlDatabase.js';
-import BOT from './bot.js';  // Import your bot from its module
+import BOT from './api/bot.js';  // Import your bot from its module
 import dotenv from 'dotenv';
 dotenv.config();
 
