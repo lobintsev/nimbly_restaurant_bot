@@ -6,11 +6,18 @@ import Message from "./models/Message.js";
 import User from "./models/User.js";
 import generateCard from "./functions/generateCard.js";
 
-const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
+// const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
+const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, {   webHook: {
+  // Just use 443 directly
+  port: 443
+} });
 const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
+const url = 'https://' + process.env.VERCEL_URL;
 
 const userStates = {};
+
+bot.setWebHook(`${url}/bot${TOKEN}`);
 
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
