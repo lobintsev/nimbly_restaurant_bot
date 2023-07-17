@@ -34,13 +34,13 @@ export default async (request, response) => {
     function createMainMenuKeyboard() {
       return {
         reply_markup: JSON.stringify({
-          keyboard: [["Программа Лояльности"], ["Обратная связь"]],
+          keyboard: [["Лояльность"], ["Фидбек"]],
           resize_keyboard: true,
           one_time_keyboard: false,
         }),
       };
     }
-    
+
   } catch (error) {
     console.error("Error sending message");
     console.log(error.toString());
