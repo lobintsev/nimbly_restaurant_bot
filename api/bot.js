@@ -23,7 +23,7 @@ const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
 const url = `https://${process.env.VERCEL_URL}`;
 const userStates = {};
-BOT.setWebHook(`${url}/api/bot`);
+BOT.setWebHook(`${url}/api/bot${process.env.TELEGRAM_TOKEN}`);
 console.log(`${url}/api/bot`);
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
