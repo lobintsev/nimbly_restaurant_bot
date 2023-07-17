@@ -3,12 +3,12 @@ import TelegramBot from "node-telegram-bot-api";
 import generateCard from "../functions/generateCard.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
+import sequelize from "./sqlDatabase.js";
 
-// const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
+
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN);
 const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
-// const url = `https://${process.env.VERCEL_URL}`;
 const url = 'https://vatr-restaurant-bot.vercel.app'
 const userStates = {};
 
