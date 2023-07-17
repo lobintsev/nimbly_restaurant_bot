@@ -26,6 +26,7 @@ const url = 'https://vatr-restaurant-bot.vercel.app'
 const userStates = {};
 BOT.setWebHook(`${url}/api/bot`);
 console.log(`${url}/api/bot`);
+
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
 BOT.onText(/\/start/, async (msg) => {
