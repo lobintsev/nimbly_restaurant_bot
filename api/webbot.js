@@ -1,56 +1,50 @@
-// Require our Telegram helper package
 import TelegramBot from "node-telegram-bot-api";
 import sequelize from "./sqlDatabase.js";
-import Message from "../models/Message.js";
 import User from "../models/User.js";
 
-
 export default async (request, response) => {
-
   const bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
   const { body } = request;
 
-  try {
-  
+  if (body.message) {
+    const { chat: { id: chatId }, text } = body.message;
 
-    if (body.message) {
-      const {
-        chat: { id: chatId },
-        text,
-      } = body.message;
-
+    if (text === "/start") {
       const user = await User.findOne({
         where: {
           chatId: chatId,
         },
       });
 
+      if (user) {
+        await bot.sendMessage(chatId, "Привет! Можете проверить баланс или связаться с нами", createMainMenuKeyboard());
+      } else {
+        await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
+      }
+    } else {
       const userString = JSON.stringify(user, null, 2);
 
       const message = `✅ Thanks for your message: *"${text}"*\nUser: \`${userString}\`\nHave a great day! 👋🏻`;
-
       const keyboardOptions = createMainMenuKeyboard();
 
-      // send the message with the keyboard
-      await bot.sendMessage(chatId, message, {...keyboardOptions, parse_mode: "Markdown" });
-    
+      await bot.sendMessage(chatId, message, { ...keyboardOptions, parse_mode: "Markdown" });
     }
-
-    function createMainMenuKeyboard() {
-      return {
-        reply_markup: JSON.stringify({
-          keyboard: [["Лояльность"], ["Фидбек"]],
-          resize_keyboard: true,
-          one_time_keyboard: false,
-        }),
-      };
-    }
-
-  } catch (error) {
-    console.error("Error sending message");
-    console.log(error.toString());
   }
 
   response.send("OK");
 };
+
+function createMainMenuKeyboard() {
+  return {
+    reply_markup: JSON.stringify({
+      keyboard: [["Лояльность"], ["Фидбек"]],
+      resize_keyboard: true,
+      one_time_keyboard: false,
+    }),
+  };
+}
+
+function createRegistrationKeyboard() {
+  // Modify this function to return your registration keyboard
+}
 
