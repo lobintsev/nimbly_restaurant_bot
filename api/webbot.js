@@ -4,11 +4,14 @@ import sequelize from "./sqlDatabase.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 
-export default async (request, response) => {
-  try {
-    const bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
 
-    const { body } = request;
+export default async (request, response) => {
+
+  const bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
+  const { body } = request;
+
+  try {
+  
 
     if (body.message) {
       const {
