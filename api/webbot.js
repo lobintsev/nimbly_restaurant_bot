@@ -1,5 +1,8 @@
 // Require our Telegram helper package
 import TelegramBot from 'node-telegram-bot-api';
+import sequelize from "./sqlDatabase.js";
+import Message from "../models/Message.js";
+import User from "../models/User.js";
 
 // Export as an asynchronous function
 // We'll wait until we've responded to the user
@@ -12,7 +15,12 @@ export default async (request, response) => {
 
         // Retrieve the POST request body that gets sent from Telegram
         const { body } = request;
-
+        const chatId = msg.chat.id.toString();
+        const user = await User.findOne({
+          where: {
+            chatId: chatId,
+          },
+        });
         // Ensure that this is a message being sent
         if (body.message) {
             // Retrieve the ID for this chat
@@ -21,7 +29,7 @@ export default async (request, response) => {
 
             // Create a message to send back
             // We can use Markdown inside this
-            const message = `✅ Thanks for your message: *"${text}"*\nHave a great day! 👋🏻`;
+            const message = `✅ Thanks for your message: *"${text}"* *"${chatId}"*\nHave a great day! 👋🏻`;
 
             // Send our new message back in Markdown and
             // wait for the request to finish
