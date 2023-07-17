@@ -1,9 +1,8 @@
-import dotenv from "dotenv";
-dotenv.config();
 
 import TelegramBot from "node-telegram-bot-api";
-import axios from "axios";
 import generateCard from "../functions/generateCard.js";
+import Message from "../models/Message.js";
+import User from "../models/User.js";
 
 // const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN);
