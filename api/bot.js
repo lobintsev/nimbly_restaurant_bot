@@ -3,8 +3,7 @@ dotenv.config();
 import sequelize from "./sqlDatabase.js";
 import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
-import Message from "../models/Message.js";
-import User from "../models/User.js";
+нррр
 import generateCard from "../functions/generateCard.js";
 (async () => {
   try {
