@@ -26,8 +26,10 @@ export default async (request, response) => {
 
       const message = `✅ Thanks for your message: *"${text}"*\nUser: \`${userString}\`\nHave a great day! 👋🏻`;
 
-      await bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
-      createMainMenuKeyboard();
+      const keyboardOptions = createMainMenuKeyboard();
+
+      // send the message with the keyboard
+      await bot.sendMessage(chatId, message, {...keyboardOptions, parse_mode: "Markdown" });
     
     }
 
@@ -48,3 +50,4 @@ export default async (request, response) => {
 
   response.send("OK");
 };
+
