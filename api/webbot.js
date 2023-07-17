@@ -21,9 +21,7 @@ export default async (request, response) => {
       } else {
         await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
       }
-    }  
-    
-    if (text === "/start") {
+    } else {
       const userString = JSON.stringify(user, null, 2);
 
       const message = `✅ Thanks for your message: *"${text}"*\nUser: \`${userString}\`\nHave a great day! 👋🏻`;
