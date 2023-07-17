@@ -1,9 +1,9 @@
 // Require our Telegram helper package
-const TelegramBot = require('node-telegram-bot-api');
+import TelegramBot from 'node-telegram-bot-api';
 
 // Export as an asynchronous function
 // We'll wait until we've responded to the user
-module.exports = async (request, response) => {
+export default async (request, response) => {
     try {
         // Create our new bot handler with the token
         // that the Botfather gave us
