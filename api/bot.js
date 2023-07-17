@@ -17,14 +17,14 @@ import generateCard from "../functions/generateCard.js";
     console.error('Unable to connect to the database:', error);
   }
 })();
-const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
-// const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { webHook: { port: 443 } });
+// const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
+const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { webHook: { port: 443 } });
 const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
 const url = `https://${process.env.VERCEL_URL}`;
 const userStates = {};
-// BOT.setWebHook(`${url}/api/bot`);
-// console.log(`${url}/api/bot`);
+BOT.setWebHook(`${url}/api/bot`);
+console.log(`${url}/api/bot`);
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
 BOT.onText(/\/start/, async (msg) => {
