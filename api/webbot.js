@@ -113,7 +113,7 @@ export default async (request, response) => {
       } else {
         await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
       }
-    }  else if (contact) {
+    }  else if (body.message.contact) {
       await handleContactMessage(chatId, contact, bot);
     } else if (text === "Лояльность") {
       if (user) {
