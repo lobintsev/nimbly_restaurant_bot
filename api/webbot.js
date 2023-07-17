@@ -1,7 +1,7 @@
 import TelegramBot from "node-telegram-bot-api";
 import User from "../models/User.js";
 import axios from "axios";
-TENANT_ID = process.env.TENANT_ID;
+const TENANT_ID = process.env.TENANT_ID;
 
 const fetchData = async (chatId, phone, bot) => {
   try {
