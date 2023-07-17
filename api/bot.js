@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import sequelize from "../sqlDatabase.js";
+import sequelize from "./sqlDatabase.js";
 import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
 import Message from "../models/Message.js";
