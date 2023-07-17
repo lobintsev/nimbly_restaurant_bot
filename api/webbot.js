@@ -47,6 +47,53 @@ function formatData(data) {
   return message;
 }
 
+async function handleContactMessage(chatId, contact, bot) {
+  const phone = contact.phone_number;
+  const first_name = contact.first_name || "";
+  const last_name = contact.last_name || "";
+  const user_id = contact.user_id || "";
+
+  bot.sendChatAction(chatId, "typing");
+  try {
+    const response = await axios.post(
+      "https://api.squarefi.io/api:aYQXf2CE/iiko/customers/add",
+      {
+        tenants_id: TENANT_ID,
+        name: contact.first_name,
+        surname: contact.last_name ?? null,
+        phone: contact.phone_number,
+      }
+    );
+
+    if (response.status === 200) {
+      bot.sendMessage(
+        chatId,
+        "Вы зарегистрированы!",
+        createMainMenuKeyboard()
+      );
+
+      await User.create({
+        chatId,
+        phone,
+        first_name,
+        last_name,
+        user_id,
+      });
+      
+      await fetchData(chatId, contact.phone_number, bot);
+    } else {
+      bot.sendMessage(chatId, "Регистрация не удалась :(", {
+        reply_markup: { remove_keyboard: true },
+      });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    bot.sendMessage(chatId, "An error occurred during registration.", {
+      reply_markup: { remove_keyboard: true },
+    });
+  }
+}
+
 export default async (request, response) => {
   const bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
   const { body } = request;
@@ -66,6 +113,8 @@ export default async (request, response) => {
       } else {
         await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
       }
+    }  else if (contact) {
+      await handleContactMessage(chatId, contact, bot);
     } else if (text === "Лояльность") {
       if (user) {
         await fetchData(chatId, user.phone, bot);
