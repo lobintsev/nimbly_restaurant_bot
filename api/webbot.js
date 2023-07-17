@@ -7,10 +7,7 @@ export default async (request, response) => {
   const { body } = request;
 
   if (body.message) {
-    const {
-      chat: { id: chatId },
-      text,
-    } = body.message;
+    const { chat: { id: chatId }, text } = body.message;
 
     if (text === "/start") {
       const user = await User.findOne({
@@ -20,30 +17,19 @@ export default async (request, response) => {
       });
 
       if (user) {
-        await bot.sendMessage(
-          chatId,
-          "Привет! Можете проверить баланс или связаться с нами",
-          createMainMenuKeyboard()
-        );
+        await bot.sendMessage(chatId, "Привет! Можете проверить баланс или связаться с нами", createMainMenuKeyboard());
       } else {
-        await bot.sendMessage(
-          chatId,
-          "Просим Вас пройти регистрацию.",
-          createRegistrationKeyboard()
-        );
+        await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
       }
-    }
-
-    if (text === "/userdata") {
+    }  
+    
+    if (text === "/start") {
       const userString = JSON.stringify(user, null, 2);
 
       const message = `✅ Thanks for your message: *"${text}"*\nUser: \`${userString}\`\nHave a great day! 👋🏻`;
       const keyboardOptions = createMainMenuKeyboard();
 
-      await bot.sendMessage(chatId, message, {
-        ...keyboardOptions,
-        parse_mode: "Markdown",
-      });
+      await bot.sendMessage(chatId, message, { ...keyboardOptions, parse_mode: "Markdown" });
     }
   }
 
@@ -63,3 +49,4 @@ function createMainMenuKeyboard() {
 function createRegistrationKeyboard() {
   // Modify this function to return your registration keyboard
 }
+
