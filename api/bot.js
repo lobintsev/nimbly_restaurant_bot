@@ -21,9 +21,10 @@ import generateCard from "../functions/generateCard.js";
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { webHook: { port: 443 } });
 const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID;
-const url = `https://${process.env.VERCEL_URL}`;
+// const url = `https://${process.env.VERCEL_URL}`;
+const url = 'https://vatr-restaurant-bot.vercel.app'
 const userStates = {};
-BOT.setWebHook(`${url}/api/bot${process.env.TELEGRAM_TOKEN}`);
+BOT.setWebHook(`${url}/api/bot`);
 console.log(`${url}/api/bot`);
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
