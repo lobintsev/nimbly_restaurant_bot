@@ -18,6 +18,10 @@ console.log(`${url}/api/webbot`);
 
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
+bot.on('message', function onMessage(msg) {
+  bot.sendMessage(msg.chat.id, 'I am alive on Vercel!');
+});
+
 BOT.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id.toString();
 	
@@ -26,7 +30,7 @@ BOT.onText(/\/start/, async (msg) => {
     "Привет! Можете проверить баланс или связаться с нами",
     createMainMenuKeyboard()
   );
-  
+
 });
 
 BOT.onText(/Программа Лояльности/, async (msg) => {
