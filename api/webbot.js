@@ -98,10 +98,18 @@ function createMainMenuKeyboard() {
   };
 }
 
-function createRegistrationKeyboard() {
-  // Modify this function to return your registration keyboard
-}
 
+function createRegistrationKeyboard() {
+
+  return {
+    reply_markup: {
+      resize_keyboard: true,
+      keyboard: [
+        [{ text: "Передать контактные данные", request_contact: true }],
+      ],
+    },
+  };
+}
 function escapeMarkdown(text) {
   // Add this function to escape Markdown syntax
   return text.replace(/[_*[\]()~`>#+-=|{}.!]/g, '\\$&');
