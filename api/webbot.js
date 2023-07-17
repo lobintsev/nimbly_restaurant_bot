@@ -18,7 +18,7 @@ console.log(`${url}/api/webbot`);
 
 BOT.setMyCommands([{ command: "/start", description: "Запуск" }]);
 
-bot.on('message', function onMessage(msg) {
+BOT.on('message', function onMessage(msg) {
   bot.sendMessage(msg.chat.id, 'I am alive on Vercel!');
 });
 
