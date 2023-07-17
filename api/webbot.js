@@ -45,6 +45,14 @@ function createMainMenuKeyboard() {
 }
 
 function createRegistrationKeyboard() {
-  // Modify this function to return your registration keyboard
+  console.log("createRegistrationKeyboard() called");
+  return {
+    reply_markup: {
+      resize_keyboard: true,
+      keyboard: [
+        [{ text: "Передать контактные данные", request_contact: true }],
+      ],
+    },
+  };
 }
 
