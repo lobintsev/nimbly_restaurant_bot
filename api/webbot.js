@@ -4,8 +4,6 @@ import sequelize from "./sqlDatabase.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 
-// Export as an asynchronous function
-// We'll wait until we've responded to the user
 export default async (request, response) => {
   try {
       // Create our new bot handler with the token
@@ -15,32 +13,35 @@ export default async (request, response) => {
 
       // Retrieve the POST request body that gets sent from Telegram
       const { body } = request;
-   
+
       // Ensure that this is a message being sent
       if (body.message) {
-          // Retrieve the ID for this chat
-          // and the text that the user sent
-          const { chat: { id }, text } = body.message;
+          // Retrieve the ID for this chat and the text that the user sent
+          const { chat: { id: chatId }, text } = body.message;
 
-          // Stringify the body object
-          const bodyString = JSON.stringify(body, null, 2);
+          // Retrieve user from the database using chatId
+          const user = await User.findOne({
+              where: {
+                  chatId: chatId,
+              },
+          });
+
+          // Stringify the user object
+          const userString = JSON.stringify(user, null, 2);
 
           // Create a message to send back
           // We can use Markdown inside this
-          const message = `✅ Thanks for your message: *"${text}"*\nBody: \`${bodyString}\`\nHave a great day! 👋🏻`;
+          const message = `✅ Thanks for your message: *"${text}"*\nUser: \`${userString}\`\nHave a great day! 👋🏻`;
 
-          // Send our new message back in Markdown and
-          // wait for the request to finish
-          await bot.sendMessage(id, message, {parse_mode: 'Markdown'});
+          // Send our new message back in Markdown and wait for the request to finish
+          await bot.sendMessage(chatId, message, {parse_mode: 'Markdown'});
       }
-  }
-  catch(error) {
-      // If there was an error sending our message then we 
-      // can log it into the Vercel console
+  } catch(error) {
+      // If there was an error sending our message then we can log it into the Vercel console
       console.error('Error sending message');
       console.log(error.toString());
   }
-  
+
   // Acknowledge the message with Telegram
   // by sending a 200 HTTP status code
   // The message here doesn't matter.
