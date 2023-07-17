@@ -114,7 +114,7 @@ export default async (request, response) => {
         await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
       }
     }  else if (body.message.contact) {
-      await handleContactMessage(chatId, contact, bot);
+      await handleContactMessage(chatId, body.message.contact, bot);
     } else if (text === "Лояльность") {
       if (user) {
         await fetchData(chatId, user.phone, bot);
