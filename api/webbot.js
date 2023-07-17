@@ -9,13 +9,14 @@ export default async (request, response) => {
   if (body.message) {
     const { chat: { id: chatId }, text } = body.message;
 
-    if (text === "/start") {
-      const user = await User.findOne({
-        where: {
-          chatId: chatId,
-        },
-      });
+    // Define user here
+    const user = await User.findOne({
+      where: {
+        chatId: chatId,
+      },
+    });
 
+    if (text === "/start") {
       if (user) {
         await bot.sendMessage(chatId, "Привет! Можете проверить баланс или связаться с нами", createMainMenuKeyboard());
       } else {
@@ -55,4 +56,5 @@ function createRegistrationKeyboard() {
     },
   };
 }
+
 
