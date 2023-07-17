@@ -7,9 +7,10 @@ export default async (request, response) => {
 
   if (body.message) {
     const { chat: { id: chatId }, text } = body.message;
+    let user = null; // Declare the user variable here
 
     if (text === "/start") {
-      const user = await User.findOne({
+      user = await User.findOne({
         where: {
           chatId: chatId,
         },
@@ -21,8 +22,15 @@ export default async (request, response) => {
         await bot.sendMessage(chatId, "Просим Вас пройти регистрацию.", createRegistrationKeyboard());
       }
     } else {
-      const userString = JSON.stringify(user, null, 2);
+      if (!user) {
+        user = await User.findOne({
+          where: {
+            chatId: chatId,
+          },
+        });
+      }
 
+      const userString = JSON.stringify(user, null, 2);
       const message = `✅ Thanks for your message: *"${text}"*\nUser: \`${userString}\`\nHave a great day! 👋🏻`;
       const keyboardOptions = createMainMenuKeyboard();
 
@@ -46,4 +54,3 @@ function createMainMenuKeyboard() {
 function createRegistrationKeyboard() {
   // Modify this function to return your registration keyboard
 }
-
