@@ -8,6 +8,12 @@ const databaseConfig = {
     host: process.env.DB_HOST,  // No protocol
     dialect: process.env.DB_DIALECT,
     port: process.env.DB_PORT,  // Integer not string
+    dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false // <<<<<<< YOU NEED THIS TO FIX YOUR ISSUE
+        }
+      }
   };
   console.log(databaseConfig);
 const sequelize = new Sequelize(databaseConfig);
