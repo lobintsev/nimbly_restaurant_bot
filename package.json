@@ -2,13 +2,12 @@
   "name": "vatr_test_bot",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "api/bot.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
-    "start-dev": "nodemon bot.js",
-    "start-db": "nodemon app.js",
+    "dev": "nodemon api/bot.js",
+    "build": "echo \"No build step\"",
+    "start": "node api/bot.js",
     "stop": "pkill node"
   },
   "author": "",

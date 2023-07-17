@@ -1,11 +1,22 @@
 import dotenv from "dotenv";
 dotenv.config();
+import sequelize from "../sqlDatabase.js";
 import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import generateCard from "../functions/generateCard.js";
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Connection has been established successfully.');
 
+    await sequelize.sync();
+    console.log('Database synchronized successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
+})();
 // const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 const BOT = new TelegramBot(process.env.TELEGRAM_TOKEN, { webHook: { port: 443 } });
 const TENANT_ID = process.env.TENANT_ID;
