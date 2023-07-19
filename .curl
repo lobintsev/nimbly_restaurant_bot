@@ -1,1 +1,1 @@
-curl -X POST https://api.telegram.org/bot5151002241:AAEpeJeV58hO0LGVOKPkRGbMxK2Thwl35TA/setWebhook -H "Content-type: application/json" -d '{"url": "https://vatr-restaurant-bot.vercel.app/api/webbot"}'
+https://api.telegram.org/bot6384562808:AAHleHsMh4WE6WgiiLdgT9RT7q0clzxH_VI/setWebhook?url=https://vatr-restaurant-bot.vercel.app/api/rock
