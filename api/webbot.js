@@ -25,7 +25,7 @@ const fetchData = async (chatId, phone, bot) => {
 };
 
 function formatData(data) {
-  let message = "*Ваши данные* \n\n";
+  let message = "*Ваши данные*";
 
   if (data.name && data.surname)
     message += `Имя: ${data.name} ${
