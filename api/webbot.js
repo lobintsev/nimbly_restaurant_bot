@@ -28,20 +28,17 @@ function formatData(data) {
   let message = "*Ваши данные* \n\n";
 
   if (data.name && data.surname)
-    message += `Имя: ${escapeMarkdown(data.name)} ${escapeMarkdown(
-      data.surname
-    )} \n`;
+    message += `Имя: ${data.name} ${
+      data.surname} \n`;
   if (data.phone)
-    message += `Телефон: ${escapeMarkdown(data.phone).replace("\\+", "+")} \n`;
-  if (data.email)
-    message += `E-mail: ${escapeMarkdown(data.email).replace("\\.", ".")} \n\n`;
+    message += `Телефон: ${data.phone}`;
+ 
 
   message += "*Бонусы*: \n";
   data.walletBalances?.forEach((balanceObj) => {
     if (balanceObj.name && balanceObj.balance)
-      message += `${escapeMarkdown(
-        balanceObj.name
-      )}: ${balanceObj.balance.toFixed(2)} \n`;
+      message += `${
+        balanceObj.name}: ${balanceObj.balance.toFixed(2)} \n`;
   });
 
   return message;
@@ -159,7 +156,4 @@ function createRegistrationKeyboard() {
     },
   };
 }
-function escapeMarkdown(text) {
-  // Add this function to escape Markdown syntax
-  return text.replace(/[_*[\]()~`>#+-=|{}.!]/g, '\\$&');
-}
+

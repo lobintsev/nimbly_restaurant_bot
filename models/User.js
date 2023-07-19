@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../api/sqlDatabase.js';
+import sequelize from '../api/_sqlDatabase.js';
 
 const User = sequelize.define('User', {
 chatId: {
