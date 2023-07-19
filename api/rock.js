@@ -31,7 +31,7 @@ export default async (request, response) => {
       // Check if user information was found
       if(userInfo) {
         // Create a reply message using the queried user information
-        const reply = `User Info:\nPhone: ${userInfo.phone}\nFirst Name: ${userInfo.first_name}\nLast Name: ${userInfo.last_name} ✅ Thanks for your message: *"${text}"*\nHave a great day! 👋🏻 ${body.message}`;
+        const reply = `User Info:\nPhone: ${userInfo.phone}\nFirst Name: ${userInfo.first_name}\nLast Name: ${userInfo.last_name} ✅ Thanks for your message: *"${text}"*\nHave a great day! 👋🏻 ${JSON.stringify(body.message)}`;
         await bot.sendMessage(id, reply, {parse_mode: 'Markdown'});
       } else {
         const message = `✅ Thanks for your message: *"${text}"*\nHave a great day! 👋🏻`;
