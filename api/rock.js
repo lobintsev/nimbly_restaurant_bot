@@ -20,7 +20,7 @@ export default async (request, response) => {
       let userInfo;
       try {
         // Use the client for executing the query
-        const res = await client.query('SELECT phone, first_name, last_name FROM Users WHERE chatId = $1', [id]);
+        const res = await client.query('SELECT phone, first_name, last_name FROM "Users" WHERE chatId = $1', [id]);
         userInfo = res.rows[0];
       } finally {
         // Make sure to release the client before any error handling,
