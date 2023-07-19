@@ -1,5 +1,7 @@
-import { Pool } from 'pg';
+import pg from 'pg';
 import TelegramBot from 'node-telegram-bot-api';
+
+const { Pool } = pg;
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL + "?sslmode=require",
